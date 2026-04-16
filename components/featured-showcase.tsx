@@ -76,12 +76,12 @@ export default function FeaturedShowcase({ projects }: Props) {
       className="relative"
       style={{ height: `${N * 100}vh` }}
     >
-      {/* Sticky viewport panel — clips the translating track */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-black">
+      {/* Sticky viewport panel with padding — creates inset effect */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-background flex flex-col p-4 md:p-6">
 
         {/* Featured work label — top left */}
         <div className="absolute top-8 left-10 z-20">
-          <p className="text-xs font-medium uppercase tracking-widest text-white/60">
+          <p className="text-xs font-medium uppercase tracking-widest text-foreground/40">
             Featured work
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function FeaturedShowcase({ projects }: Props) {
         {/* Counter — top right (updated imperatively) */}
         <div
           ref={counterRef}
-          className="absolute top-8 right-10 z-20 text-white/70 text-sm font-medium tabular-nums"
+          className="absolute top-8 right-10 z-20 text-foreground/50 text-sm font-medium tabular-nums"
         >
           {`01 / ${String(N).padStart(2, "0")}`}
         </div>
@@ -103,49 +103,52 @@ export default function FeaturedShowcase({ projects }: Props) {
               className="h-2 rounded-full"
               style={{
                 width:           j === 0 ? "24px" : "8px",
-                backgroundColor: j === 0 ? "#ffffff" : "rgba(255,255,255,0.3)",
+                backgroundColor: j === 0 ? "var(--foreground)" : "var(--border)",
                 transition:      "width 250ms ease, background-color 250ms ease",
               }}
             />
           ))}
         </div>
 
-        {/* Horizontal flex track — 6 × 100vw cards, translateX moves it left */}
-        <div
-          ref={trackRef}
-          className="flex h-full"
-          style={{ willChange: "transform" }}
-        >
-          {projects.map((p) => (
-            <Link
-              key={p.slug}
-              href={`/projects/${p.slug}`}
-              className="h-full shrink-0 relative flex flex-col justify-end group"
-              style={{
-                backgroundColor: p.color,
-                width:    "100vw",
-                minWidth: "100vw",
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        {/* Clip container with rounded corners and overflow hidden */}
+        <div className="flex-1 relative overflow-hidden rounded-2xl">
+          {/* Horizontal flex track — 6 × 100vw cards, translateX moves it left */}
+          <div
+            ref={trackRef}
+            className="flex h-full"
+            style={{ willChange: "transform" }}
+          >
+            {projects.map((p) => (
+              <Link
+                key={p.slug}
+                href={`/projects/${p.slug}`}
+                className="h-full shrink-0 relative flex flex-col justify-end group"
+                style={{
+                  backgroundColor: p.color,
+                  width:    "100vw",
+                  minWidth: "100vw",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-              <div className="relative z-10 max-w-xl p-10 md:p-14">
-                <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
-                  {p.categoryLabel} · {p.year}
-                  {p.badges?.map((b) => ` · ${b}`)}
-                </span>
-                <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
-                  {p.title}
-                </h2>
-                <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
-                  {p.subtitle}
-                </p>
-                <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
-                  View case study <ArrowUpRight className="w-4 h-4" />
-                </span>
-              </div>
-            </Link>
-          ))}
+                <div className="relative z-10 max-w-xl p-10 md:p-14">
+                  <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
+                    {p.categoryLabel} · {p.year}
+                    {p.badges?.map((b) => ` · ${b}`)}
+                  </span>
+                  <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
+                    {p.title}
+                  </h2>
+                  <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
+                    {p.subtitle}
+                  </p>
+                  <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
+                    View case study <ArrowUpRight className="w-4 h-4" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>
