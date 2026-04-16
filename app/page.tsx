@@ -27,7 +27,6 @@ export default function Home() {
   const cardRefs            = useRef<(HTMLDivElement | null)[]>([])
   const showcaseRef         = useRef<HTMLDivElement>(null)
   const showcaseTrackRef    = useRef<HTMLDivElement>(null)
-  const showcaseClipRef     = useRef<HTMLDivElement>(null)
   const showcaseCounterRef  = useRef<HTMLDivElement>(null)
   const showcaseDotRefs     = useRef<(HTMLDivElement | null)[]>([])
   const contactRef          = useRef<HTMLDivElement>(null)
@@ -102,22 +101,16 @@ export default function Home() {
         }
       }
 
-      // ── Horizontal showcase scroll ──────────────────────────────────────
-      if (showcaseRef.current && showcaseTrackRef.current && showcaseClipRef.current) {
+      // ── Horizontal showcase scroll (pixel-based translateX) ─────────────
+      if (showcaseRef.current && showcaseTrackRef.current) {
         const top       = showcaseRef.current.offsetTop
         const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
-        // cardW = exact pixel width of the clip container (one card's visible width)
-        const cardW     = showcaseClipRef.current.clientWidth
-        // Stamp card width onto each card so flex children know their exact size
-        Array.from(showcaseTrackRef.current.children).forEach((child) => {
-          (child as HTMLElement).style.minWidth = `${cardW}px`
-        })
         if (maxScroll > 0) {
           const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          const tx       = progress * (N - 1) * cardW
+          const tx       = progress * (N - 1) * window.innerWidth
           showcaseTrackRef.current.style.transform = `translateX(-${tx}px)`
 
-          // Update counter + dots imperatively
+          // Update counter + dots imperatively (no React state)
           const active = Math.min(N - 1, Math.round(progress * (N - 1)))
           if (showcaseCounterRef.current) {
             showcaseCounterRef.current.textContent =
@@ -126,7 +119,7 @@ export default function Home() {
           showcaseDotRefs.current.forEach((dot, j) => {
             if (!dot) return
             dot.style.width           = j === active ? "24px" : "8px"
-            dot.style.backgroundColor = j === active ? "var(--foreground)" : "var(--border)"
+            dot.style.backgroundColor = j === active ? "#ffffff" : "rgba(255,255,255,0.3)"
           })
         }
       }
@@ -308,76 +301,77 @@ export default function Home() {
       </section>
 
       {/* ═══ SECTION 3: HORIZONTAL SCROLL SHOWCASE ═══
-          600vh tall outer div. Sticky h-screen inner panel.
-          Cards are 100% of the inner card container width (not w-screen),
-          so padding + radius work without breaking the translateX math.       */}
+          Outer = N*100vh tall. Sticky h-screen panel clips a flex track.
+          Each card is 100vw via inline style. translateX is pixel-based.       */}
       <div
         ref={showcaseRef}
         style={{ height: `${N * 100}vh` }}
         className="relative"
       >
-        <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-center py-4 px-4 md:px-6 gap-3">
+        <div className="sticky top-0 h-screen overflow-hidden">
 
-          {/* Label row */}
-          <div className="flex items-center justify-between px-1">
-            <p className="text-xs font-medium uppercase tracking-widest text-foreground/40">
+          {/* Label — top left */}
+          <div className="absolute top-8 left-10 z-20">
+            <p className="text-xs font-medium uppercase tracking-widest text-white/60">
               Featured work
             </p>
-            {/* Counter — updated imperatively */}
-            <div ref={showcaseCounterRef} className="text-xs font-medium text-foreground/40 tabular-nums">
-              01 / {String(N).padStart(2, "0")}
-            </div>
           </div>
 
-          {/* Card viewport — clips the translating track */}
-          <div ref={showcaseClipRef} className="relative flex-1 overflow-hidden rounded-3xl">
-            {/* Translating track — card widths set imperatively in scroll handler */}
-            <div
-              ref={showcaseTrackRef}
-              className="flex h-full"
-              style={{ willChange: "transform" }}
-            >
-              {featured.map((p, i) => (
-                <Link
-                  key={p.slug}
-                  href={`/projects/${p.slug}`}
-                  className="h-full shrink-0 relative flex flex-col justify-end group"
-                  style={{ backgroundColor: p.color }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-                  <div className="relative z-10 max-w-xl p-10 md:p-14">
-                    <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
-                      {p.categoryLabel} · {p.year}
-                      {p.badges?.map((b) => ` · ${b}`)}
-                    </span>
-                    <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
-                      {p.title}
-                    </h2>
-                    <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
-                      {p.subtitle}
-                    </p>
-                    <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
-                      View case study <ArrowUpRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+          {/* Counter — top right, updated imperatively */}
+          <div
+            ref={showcaseCounterRef}
+            className="absolute top-8 right-10 z-20 text-white/50 text-sm font-medium tabular-nums"
+          >
+            01 / {String(N).padStart(2, "0")}
           </div>
 
-          {/* Progress dots row — updated imperatively */}
-          <div className="flex items-center justify-center gap-2 px-1">
+          {/* Progress dots — bottom right, updated imperatively */}
+          <div className="absolute bottom-8 right-10 z-20 flex items-center gap-2">
             {featured.map((_, j) => (
               <div
                 key={j}
                 ref={(el) => { showcaseDotRefs.current[j] = el as HTMLDivElement }}
-                className="h-1.5 rounded-full transition-all duration-300"
+                className="h-2 rounded-full"
                 style={{
                   width:           j === 0 ? 24 : 8,
-                  backgroundColor: j === 0 ? "var(--foreground)" : "var(--border)",
+                  backgroundColor: j === 0 ? "#ffffff" : "rgba(255,255,255,0.3)",
+                  transition:      "width 250ms ease, background-color 250ms ease",
                 }}
               />
+            ))}
+          </div>
+
+          {/* Horizontal track — cards are 100vw each via inline width */}
+          <div
+            ref={showcaseTrackRef}
+            className="flex h-full"
+            style={{ willChange: "transform" }}
+          >
+            {featured.map((p) => (
+              <Link
+                key={p.slug}
+                href={`/projects/${p.slug}`}
+                className="h-full shrink-0 relative flex flex-col justify-end group"
+                style={{ backgroundColor: p.color, width: "100vw", minWidth: "100vw" }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                <div className="relative z-10 max-w-xl p-10 md:p-14">
+                  <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
+                    {p.categoryLabel} · {p.year}
+                    {p.badges?.map((b) => ` · ${b}`)}
+                  </span>
+                  <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
+                    {p.title}
+                  </h2>
+                  <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
+                    {p.subtitle}
+                  </p>
+                  <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
+                    View case study <ArrowUpRight className="w-4 h-4" />
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
 
