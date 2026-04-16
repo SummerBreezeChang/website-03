@@ -41,8 +41,11 @@ export default function Navigation() {
           style={{
             width:           navWidth,
             borderRadius:    navBorderRadius,
-            paddingTop:      12,
-            paddingBottom:   12,
+            paddingTop:      26,
+            paddingBottom:   24,
+            paddingRight:    38,
+            marginTop:       16,
+            marginBottom:    16,
             backgroundColor: useTransform(
               navBgOpacity,
               (v) => `rgba(255, 245, 230, ${v})`
@@ -63,8 +66,8 @@ export default function Navigation() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-medium transition-colors duration-300"
-                  style={{ color: scrolled ? "#888" : "rgba(255,255,255,0.85)" }}
+                  className="font-medium transition-colors duration-300"
+                  style={{ fontSize: "14px", color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
                 >
                   {link.label}
                 </a>
@@ -72,8 +75,8 @@ export default function Navigation() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-xs font-medium transition-colors duration-300"
-                  style={{ color: scrolled ? "#888" : "rgba(255,255,255,0.85)" }}
+                  className="font-medium transition-colors duration-300"
+                  style={{ fontSize: "14px", color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
                 >
                   {link.label}
                 </Link>
@@ -114,8 +117,8 @@ export default function Navigation() {
               href="https://postfit.beehiiv.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:block text-xs font-medium transition-colors duration-300"
-              style={{ color: scrolled ? "#888" : "rgba(255,255,255,0.85)" }}
+              className="hidden md:block font-medium transition-colors duration-300"
+              style={{ fontSize: "14px", color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
             >
               Blog ↗
             </a>
@@ -123,12 +126,8 @@ export default function Navigation() {
               href="/Summer-Chang-Resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold px-4 py-1.5 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: scrolled ? "var(--primary)" : "rgba(255,255,255,0.15)",
-                color:           "#fff",
-                border:          scrolled ? "none" : "1px solid rgba(255,255,255,0.4)",
-              }}
+              className="font-medium transition-colors duration-300"
+              style={{ fontSize: "14px", color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
             >
               Resume
             </a>

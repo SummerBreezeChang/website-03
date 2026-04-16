@@ -14,6 +14,7 @@ import Link from "next/link"
 import { ArrowUpRight, ArrowRight } from "lucide-react"
 import { getFeaturedProjects } from "@/lib/projects-v2"
 import Navigation from "@/components/navigation"
+import FeaturedShowcase from "@/components/featured-showcase"
 
 export default function Home() {
   const [scrollY, setScrollY]           = useState(0)
@@ -24,10 +25,8 @@ export default function Home() {
     { x: number; y: number; width: number; height: number }[]
   >([])
 
-  const cardRefs         = useRef<(HTMLDivElement | null)[]>([])
-  const showcaseRef      = useRef<HTMLDivElement>(null)
-  const showcaseTrackRef = useRef<HTMLDivElement>(null)
-  const contactRef       = useRef<HTMLDivElement>(null)
+  const cardRefs            = useRef<(HTMLDivElement | null)[]>([])
+  const contactRef          = useRef<HTMLDivElement>(null)
 
   const featured = getFeaturedProjects()
   const N = featured.length // should be 6
@@ -99,18 +98,6 @@ export default function Home() {
         }
       }
 
-      // ── Horizontal showcase scroll (imperative, no re-render) ────────────
-      // Uses offsetTop (document-space) — stable in production unlike getBoundingClientRect
-      if (showcaseRef.current && showcaseTrackRef.current) {
-        const top       = showcaseRef.current.offsetTop
-        const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
-        if (maxScroll > 0) {
-          const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          // tx in % of the flex track (track width = N × 100vw)
-          const tx = progress * (N - 1) * (100 / N)
-          showcaseTrackRef.current.style.transform = `translateX(-${tx}%)`
-        }
-      }
     }
 
     // Init
@@ -125,7 +112,7 @@ export default function Home() {
       window.removeEventListener("scroll", onScroll)
       window.removeEventListener("resize", onResize)
     }
-  }, [N, measure])
+  }, [measure])
 
   // ─── DERIVED SCROLL PROGRESS ─────────────────────────────────────────────
   // sp  = 0→1 as we scroll through hero (controls bento fade + floating cards)
@@ -144,7 +131,7 @@ export default function Home() {
   const textRise = Math.max(0, Math.min(1, (contactScale - 0.15) / 0.5))
 
   return (
-    <main className="min-h-screen bg-background overflow-x-hidden">
+    <main className="min-h-screen bg-background">
 
       <Navigation />
 
@@ -288,90 +275,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ SECTION 3: HORIZONTAL SCROLL SHOWCASE ═══
-          The outer div is tall (N × 100vh) so scrolling through it drives
-          the inner sticky panel's translateX. Each card is full-viewport wide.
-          "Zoom-in" = each incoming card scales from 0.94 → 1.0 on entry.    */}
-      <div
-        ref={showcaseRef}
-        style={{ height: `${N * 100}vh` }}
-        className="relative"
-      >
-        {/* Sticky viewport-height container */}
-        <div className="sticky top-0 h-screen overflow-hidden">
-
-          {/* Label + counter — rendered on top of cards */}
-          <div className="absolute top-7 left-10 z-20 flex items-center gap-4">
-            <p className="text-xs font-medium uppercase tracking-widest text-white/40">
-              Featured work
-            </p>
-          </div>
-
-          {/* Horizontally translating track */}
-          <div
-            ref={showcaseTrackRef}
-            className="flex h-full"
-            style={{ willChange: "transform" }}  /* GPU layer hint */
-          >
-            {featured.map((p, i) => (
-              <Link
-                key={p.slug}
-                href={`/projects/${p.slug}`}
-                /* Each card = 100vw wide */
-                className="min-w-full h-full relative flex flex-col justify-end group"
-                style={{ backgroundColor: p.color }}
-              >
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-                {/* Card text */}
-                <div className="relative z-10 max-w-xl p-10 md:p-14">
-                  <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
-                    {p.categoryLabel} · {p.year}
-                    {p.badges?.map((b) => ` · ${b}`)}
-                  </span>
-                  <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
-                    {p.title}
-                  </h2>
-                  <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
-                    {p.subtitle}
-                  </p>
-                  <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
-                    View case study <ArrowUpRight className="w-4 h-4" />
-                  </span>
-                </div>
-
-                {/* Counter top-right */}
-                <div className="absolute top-8 right-12 text-white/40 text-sm font-medium z-10">
-                  {String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
-                </div>
-
-                {/* Progress dots bottom-right */}
-                <div className="absolute bottom-8 right-12 flex gap-2 z-10">
-                  {featured.map((_, j) => (
-                    <div
-                      key={j}
-                      className="h-2 rounded-sm"
-                      style={{
-                        width:           j === i ? 24 : 8,
-                        backgroundColor: j === i ? "white" : "rgba(255,255,255,0.25)",
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* "Scroll to explore" hint on first card only */}
-                {i === 0 && (
-                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/40 text-xs font-medium z-10 flex flex-col items-center gap-1">
-                    <span className="animate-bounce">→</span>
-                    <span>Scroll to explore projects</span>
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* ═══ SECTION 3: HORIZONTAL SCROLL SHOWCASE ═══ */}
+      <FeaturedShowcase projects={featured} />
 
       {/* ═══ SEE MORE ═══ */}
       <section className="py-12 text-center px-4">
