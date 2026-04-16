@@ -27,6 +27,8 @@ export default function Home() {
   const cardRefs         = useRef<(HTMLDivElement | null)[]>([])
   const showcaseRef      = useRef<HTMLDivElement>(null)
   const showcaseTrackRef = useRef<HTMLDivElement>(null)
+  const dotRefs          = useRef<(HTMLDivElement | null)[]>([])
+  const counterRef       = useRef<HTMLDivElement>(null)
   const contactRef       = useRef<HTMLDivElement>(null)
 
   const featured = getFeaturedProjects()
@@ -100,15 +102,28 @@ export default function Home() {
       }
 
       // ── Horizontal showcase scroll (imperative, no re-render) ────────────
-      // Uses offsetTop (document-space) — stable in production unlike getBoundingClientRect
+      // Pixel-based translation per spec: translateX(-progress * (N-1) * innerWidth)
       if (showcaseRef.current && showcaseTrackRef.current) {
         const top       = showcaseRef.current.offsetTop
         const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
         if (maxScroll > 0) {
           const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          // tx in % of the flex track (track width = N × 100vw)
-          const tx = progress * (N - 1) * (100 / N)
-          showcaseTrackRef.current.style.transform = `translateX(-${tx}%)`
+          const tx       = progress * (N - 1) * window.innerWidth
+          showcaseTrackRef.current.style.transform = `translateX(-${tx}px)`
+
+          // Active card index — update dots + counter imperatively (no state)
+          const activeIndex = Math.min(N - 1, Math.round(progress * (N - 1)))
+          for (let j = 0; j < dotRefs.current.length; j++) {
+            const dot = dotRefs.current[j]
+            if (!dot) continue
+            const isActive = j === activeIndex
+            dot.style.width           = isActive ? "24px" : "8px"
+            dot.style.backgroundColor = isActive ? "#ffffff" : "rgba(255,255,255,0.3)"
+          }
+          if (counterRef.current) {
+            counterRef.current.textContent =
+              `${String(activeIndex + 1).padStart(2, "0")} / ${String(N).padStart(2, "0")}`
+          }
         }
       }
     }
@@ -289,43 +304,66 @@ export default function Home() {
       </section>
 
       {/* ═══ SECTION 3: HORIZONTAL SCROLL SHOWCASE ═══
-          The outer div is tall (N × 100vh) so scrolling through it drives
-          the inner sticky panel's translateX. Each card is full-viewport wide.
-          "Zoom-in" = each incoming card scales from 0.94 → 1.0 on entry.    */}
+          Outer wrapper = N × 100vh tall (600vh for 6 cards).
+          Inner sticky panel holds a flex track of full-viewport cards.
+          Scrolling 100vh advances one card (100vw) via pixel-based translateX. */}
       <div
         ref={showcaseRef}
         style={{ height: `${N * 100}vh` }}
         className="relative"
       >
-        {/* Sticky viewport-height container with padding so cards aren't full-bleed */}
-        <div className="sticky top-0 h-screen overflow-hidden p-4 md:p-6">
+        {/* Sticky viewport panel — full bleed */}
+        <div className="sticky top-0 h-screen w-screen overflow-hidden">
 
-          {/* Label + counter — sits above the inset cards */}
-          <div className="absolute top-10 md:top-12 left-14 md:left-16 z-20 flex items-center gap-4">
+          {/* Featured work label — top left */}
+          <div className="absolute top-8 left-10 z-20">
             <p className="text-xs font-medium uppercase tracking-widest text-white/60">
               Featured work
             </p>
           </div>
 
-          {/* Horizontally translating track (sits inside the padded container) */}
+          {/* Counter — top right (updated imperatively via ref) */}
+          <div
+            ref={counterRef}
+            className="absolute top-8 right-10 z-20 text-white/70 text-sm font-medium tabular-nums"
+          >
+            {`01 / ${String(N).padStart(2, "0")}`}
+          </div>
+
+          {/* Progress dots — bottom right (updated imperatively via refs) */}
+          <div className="absolute bottom-10 right-10 z-20 flex items-center gap-2">
+            {featured.map((_, j) => (
+              <div
+                key={j}
+                ref={(el) => { dotRefs.current[j] = el as HTMLDivElement }}
+                className="h-2 rounded-full"
+                style={{
+                  width:           j === 0 ? "24px" : "8px",
+                  backgroundColor: j === 0 ? "#ffffff" : "rgba(255,255,255,0.3)",
+                  transition:      "width 250ms ease, background-color 250ms ease",
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Horizontal track — translated in pixels */}
           <div
             ref={showcaseTrackRef}
             className="flex h-full"
-            style={{ willChange: "transform" }}  /* GPU layer hint */
+            style={{ willChange: "transform" }}
           >
-            {featured.map((p, i) => (
+            {featured.map((p) => (
               <Link
                 key={p.slug}
                 href={`/projects/${p.slug}`}
-                /* Each card = 100% of the padded container width, with rounded corners */
-                className="min-w-full h-full relative flex flex-col justify-end group rounded-3xl overflow-hidden"
+                className="w-screen h-full shrink-0 relative flex flex-col justify-end group"
                 style={{ backgroundColor: p.color }}
               >
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                {/* Card text */}
-                <div className="relative z-10 max-w-xl p-10 md:p-14">
+                {/* Bottom-left card text */}
+                <div className="relative z-10 max-w-xl p-10 md:p-16">
                   <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
                     {p.categoryLabel} · {p.year}
                     {p.badges?.map((b) => ` · ${b}`)}
@@ -340,33 +378,6 @@ export default function Home() {
                     View case study <ArrowUpRight className="w-4 h-4" />
                   </span>
                 </div>
-
-                {/* Counter top-right */}
-                <div className="absolute top-8 right-12 text-white/40 text-sm font-medium z-10">
-                  {String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
-                </div>
-
-                {/* Progress dots bottom-right */}
-                <div className="absolute bottom-8 right-12 flex gap-2 z-10">
-                  {featured.map((_, j) => (
-                    <div
-                      key={j}
-                      className="h-2 rounded-sm"
-                      style={{
-                        width:           j === i ? 24 : 8,
-                        backgroundColor: j === i ? "white" : "rgba(255,255,255,0.25)",
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* "Scroll to explore" hint on first card only */}
-                {i === 0 && (
-                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/40 text-xs font-medium z-10 flex flex-col items-center gap-1">
-                    <span className="animate-bounce">→</span>
-                    <span>Scroll to explore projects</span>
-                  </div>
-                )}
               </Link>
             ))}
           </div>
