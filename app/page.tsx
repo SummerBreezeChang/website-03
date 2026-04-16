@@ -13,12 +13,12 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import Link from "next/link"
 import { ArrowUpRight, ArrowRight } from "lucide-react"
 import { getFeaturedProjects } from "@/lib/projects-v2"
+import Navigation from "@/components/navigation"
 
 export default function Home() {
   const [scrollY, setScrollY]           = useState(0)
   const [vh, setVh]                     = useState(800)
   const [vw, setVw]                     = useState(1200)
-  const [navGlass, setNavGlass]         = useState(false)
   const [contactScale, setContactScale] = useState(0)
   const [gridPositions, setGridPositions] = useState<
     { x: number; y: number; width: number; height: number }[]
@@ -87,9 +87,6 @@ export default function Home() {
       const sy = window.scrollY
       setScrollY(sy)
 
-      // Nav glass pill
-      setNavGlass(sy > 80)
-
       // Contact scale-up (uses offsetTop for stable positioning)
       if (contactRef.current) {
         const top   = contactRef.current.offsetTop
@@ -149,39 +146,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background overflow-x-hidden">
 
-      {/* ═══ NAV — wide transparent → glass pill on scroll ═══ */}
-      <div
-        className="sticky top-0 z-[200] flex justify-center transition-all duration-500"
-        style={{ padding: navGlass ? "8px 60px" : "12px 28px" }}
-      >
-        <div
-          className="flex items-center justify-between w-full h-11 transition-all duration-500"
-          style={{
-            padding:        navGlass ? "0 20px" : "0 8px",
-            background:     navGlass ? "rgba(255,245,230,0.6)"       : "transparent",
-            backdropFilter: navGlass ? "blur(24px)"                   : "none",
-            WebkitBackdropFilter: navGlass ? "blur(24px)"             : "none",
-            border:         navGlass ? "1px solid rgba(237,229,216,0.45)" : "1px solid transparent",
-            borderRadius:   navGlass ? 50 : 0,
-            boxShadow:      navGlass ? "0 2px 20px rgba(0,0,0,0.04)" : "none",
-            maxWidth:       navGlass ? 820 : "none",
-            margin:         navGlass ? "0 auto" : "0",
-          }}
-        >
-          <div className="flex items-center gap-6">
-            <span className="font-extrabold text-xl italic cursor-pointer">Summer</span>
-            <Link href="#projects" className="text-xs text-muted-foreground hover:text-foreground transition-colors hidden md:inline">Portfolio</Link>
-            <Link href="#services" className="text-xs text-muted-foreground hover:text-foreground transition-colors hidden md:inline">Services</Link>
-            <Link href="#about"    className="text-xs text-muted-foreground hover:text-foreground transition-colors hidden md:inline">About</Link>
-            <a href="https://postfit.beehiiv.com/" target="_blank" rel="noopener noreferrer"
-               className="text-xs text-muted-foreground hover:text-foreground transition-colors hidden md:inline">Blog ↗</a>
-          </div>
-          <Link href="/Summer-Chang-Resume.pdf" target="_blank"
-                className="bg-primary text-white px-4 py-1.5 rounded-full text-xs font-semibold">
-            Summer&apos;s Resume
-          </Link>
-        </div>
-      </div>
+      <Navigation />
 
       {/* ═══ SECTION 1: FLOATING CARDS (fixed, animated into bento) ═══ */}
       {floatingCards.map((c, i) => {
