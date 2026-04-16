@@ -104,7 +104,26 @@ export default function Home() {
       // ── Horizontal showcase scroll (pixel-based translateX) ─────────────
       if (showcaseRef.current && showcaseTrackRef.current) {
         const top       = showcaseRef.current.offsetTop
-        const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
+        const sectionH  = showcaseRef.current.offsetHeight
+        const maxScroll = sectionH - window.innerHeight
+        const trackW    = showcaseTrackRef.current.scrollWidth
+        const childCount = showcaseTrackRef.current.children.length
+        const firstChildW = (showcaseTrackRef.current.children[0] as HTMLElement)?.offsetWidth ?? 0
+
+        // Debug: log once every 60 frames
+        if (Math.round(sy) % 500 < 10) {
+          console.log("[v0] showcase debug:", {
+            scrollY: sy,
+            sectionOffsetTop: top,
+            sectionHeight: sectionH,
+            maxScroll,
+            trackScrollWidth: trackW,
+            childCount,
+            firstChildWidth: firstChildW,
+            windowInnerWidth: window.innerWidth,
+          })
+        }
+
         if (maxScroll > 0) {
           const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
           const tx       = progress * (N - 1) * window.innerWidth
