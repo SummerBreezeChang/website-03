@@ -24,10 +24,12 @@ export default function Home() {
     { x: number; y: number; width: number; height: number }[]
   >([])
 
-  const cardRefs         = useRef<(HTMLDivElement | null)[]>([])
-  const showcaseRef      = useRef<HTMLDivElement>(null)
-  const showcaseTrackRef = useRef<HTMLDivElement>(null)
-  const contactRef       = useRef<HTMLDivElement>(null)
+  const cardRefs           = useRef<(HTMLDivElement | null)[]>([])
+  const showcaseRef        = useRef<HTMLDivElement>(null)
+  const showcaseTrackRef   = useRef<HTMLDivElement>(null)
+  const showcaseCounterRef = useRef<HTMLDivElement>(null)
+  const showcaseDotRefs    = useRef<(HTMLDivElement | null)[]>([])
+  const contactRef         = useRef<HTMLDivElement>(null)
 
   const featured = getFeaturedProjects()
   const N = featured.length // should be 6
@@ -99,14 +101,27 @@ export default function Home() {
         }
       }
 
-      // ── Horizontal showcase scroll (imperative, pixel-based) ────────────
+      // ── Horizontal showcase scroll (imperative, container-width-based) ──
       if (showcaseRef.current && showcaseTrackRef.current) {
-        const top       = showcaseRef.current.offsetTop
-        const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
+        const top        = showcaseRef.current.offsetTop
+        const maxScroll  = showcaseRef.current.offsetHeight - window.innerHeight
         if (maxScroll > 0) {
-          const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          const tx       = progress * (N - 1) * window.innerWidth
+          const progress   = Math.max(0, Math.min(1, (sy - top) / maxScroll))
+          const cardW      = showcaseTrackRef.current.parentElement?.clientWidth ?? window.innerWidth
+          const tx         = progress * (N - 1) * cardW
           showcaseTrackRef.current.style.transform = `translateX(-${tx}px)`
+
+          // Update counter + dots imperatively
+          const active = Math.min(N - 1, Math.round(progress * (N - 1)))
+          if (showcaseCounterRef.current) {
+            showcaseCounterRef.current.textContent =
+              `${String(active + 1).padStart(2, "0")} / ${String(N).padStart(2, "0")}`
+          }
+          showcaseDotRefs.current.forEach((dot, j) => {
+            if (!dot) return
+            dot.style.width           = j === active ? "24px" : "8px"
+            dot.style.backgroundColor = j === active ? "var(--foreground)" : "var(--border)"
+          })
         }
       }
     }
@@ -287,88 +302,79 @@ export default function Home() {
       </section>
 
       {/* ═══ SECTION 3: HORIZONTAL SCROLL SHOWCASE ═══
-          The outer div is tall (N × 100vh) so scrolling through it drives
-          the inner sticky panel's translateX. Each card is full-viewport wide.
-          "Zoom-in" = each incoming card scales from 0.94 → 1.0 on entry.    */}
+          600vh tall outer div. Sticky h-screen inner panel.
+          Cards are 100% of the inner card container width (not w-screen),
+          so padding + radius work without breaking the translateX math.       */}
       <div
         ref={showcaseRef}
-        /* N × 100vh: sticky panel = 100vh, scroll travel = (N-1) × 100vh */
         style={{ height: `${N * 100}vh` }}
         className="relative"
       >
-        {/* Sticky panel with padding + radius — NOT full bleed */}
-        <div className="sticky top-0 h-screen overflow-hidden p-4 md:p-6">
+        <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-center py-4 px-4 md:px-6 gap-3">
 
-          {/* Label — top left (inside padded area) */}
-          <div className="absolute top-10 left-10 z-20 flex items-center gap-4">
+          {/* Label row */}
+          <div className="flex items-center justify-between px-1">
             <p className="text-xs font-medium uppercase tracking-widest text-foreground/40">
               Featured work
             </p>
+            {/* Counter — updated imperatively */}
+            <div ref={showcaseCounterRef} className="text-xs font-medium text-foreground/40 tabular-nums">
+              01 / {String(N).padStart(2, "0")}
+            </div>
           </div>
 
-          {/* Horizontally translating track */}
-          <div
-            ref={showcaseTrackRef}
-            className="flex h-full"
-            style={{ willChange: "transform" }}
-          >
-            {featured.map((p, i) => (
-              <Link
-                key={p.slug}
-                href={`/projects/${p.slug}`}
-                /* Each card = 100vw wide (w-screen), full height, rounded */
-                className="w-screen h-full shrink-0 relative flex flex-col justify-end group rounded-3xl overflow-hidden"
-                style={{ backgroundColor: p.color }}
-              >
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Card viewport — clips the translating track, sized to fill remaining space */}
+          <div className="relative flex-1 overflow-hidden rounded-3xl">
+            {/* Translating track — each card is 100% of this container */}
+            <div
+              ref={showcaseTrackRef}
+              className="flex h-full"
+              style={{ willChange: "transform" }}
+            >
+              {featured.map((p, i) => (
+                <Link
+                  key={p.slug}
+                  href={`/projects/${p.slug}`}
+                  className="w-full h-full shrink-0 relative flex flex-col justify-end group"
+                  style={{ backgroundColor: p.color, minWidth: "100%" }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                {/* Card text */}
-                <div className="relative z-10 max-w-xl p-10 md:p-14">
-                  <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
-                    {p.categoryLabel} · {p.year}
-                    {p.badges?.map((b) => ` · ${b}`)}
-                  </span>
-                  <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
-                    {p.title}
-                  </h2>
-                  <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
-                    {p.subtitle}
-                  </p>
-                  <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
-                    View case study <ArrowUpRight className="w-4 h-4" />
-                  </span>
-                </div>
-
-                {/* Counter top-right */}
-                <div className="absolute top-8 right-12 text-white/40 text-sm font-medium z-10">
-                  {String(i + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
-                </div>
-
-                {/* Progress dots bottom-right */}
-                <div className="absolute bottom-8 right-12 flex gap-2 z-10">
-                  {featured.map((_, j) => (
-                    <div
-                      key={j}
-                      className="h-2 rounded-sm"
-                      style={{
-                        width:           j === i ? 24 : 8,
-                        backgroundColor: j === i ? "white" : "rgba(255,255,255,0.25)",
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* "Scroll to explore" hint on first card only */}
-                {i === 0 && (
-                  <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/40 text-xs font-medium z-10 flex flex-col items-center gap-1">
-                    <span className="animate-bounce">→</span>
-                    <span>Scroll to explore projects</span>
+                  <div className="relative z-10 max-w-xl p-10 md:p-14">
+                    <span className="inline-block text-xs font-semibold bg-white/90 text-foreground px-3.5 py-1.5 rounded-full mb-4">
+                      {p.categoryLabel} · {p.year}
+                      {p.badges?.map((b) => ` · ${b}`)}
+                    </span>
+                    <h2 className="text-white text-3xl md:text-[46px] font-extrabold leading-tight mb-3">
+                      {p.title}
+                    </h2>
+                    <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 max-w-lg">
+                      {p.subtitle}
+                    </p>
+                    <span className="inline-flex items-center gap-2 text-white text-sm font-semibold border border-white/35 px-5 py-2.5 rounded-full group-hover:bg-white/10 transition-colors">
+                      View case study <ArrowUpRight className="w-4 h-4" />
+                    </span>
                   </div>
-                )}
-              </Link>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Progress dots row — updated imperatively */}
+          <div className="flex items-center justify-center gap-2 px-1">
+            {featured.map((_, j) => (
+              <div
+                key={j}
+                ref={(el) => { showcaseDotRefs.current[j] = el as HTMLDivElement }}
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width:           j === 0 ? 24 : 8,
+                  backgroundColor: j === 0 ? "var(--foreground)" : "var(--border)",
+                }}
+              />
             ))}
           </div>
+
         </div>
       </div>
 
