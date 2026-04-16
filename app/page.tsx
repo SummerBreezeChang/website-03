@@ -99,16 +99,14 @@ export default function Home() {
         }
       }
 
-      // ── Horizontal showcase scroll (imperative, no re-render) ────────────
-      // Uses offsetTop (document-space) — stable in production unlike getBoundingClientRect
+      // ── Horizontal showcase scroll (imperative, pixel-based) ────────────
       if (showcaseRef.current && showcaseTrackRef.current) {
         const top       = showcaseRef.current.offsetTop
         const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
         if (maxScroll > 0) {
           const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          // tx in % of the flex track (track width = N × 100vw)
-          const tx = progress * (N - 1) * (100 / N)
-          showcaseTrackRef.current.style.transform = `translateX(-${tx}%)`
+          const tx       = progress * (N - 1) * window.innerWidth
+          showcaseTrackRef.current.style.transform = `translateX(-${tx}px)`
         }
       }
     }
@@ -294,17 +292,16 @@ export default function Home() {
           "Zoom-in" = each incoming card scales from 0.94 → 1.0 on entry.    */}
       <div
         ref={showcaseRef}
-        /* (N-1) × 100vh for card transitions; the last 100vh is shared with the sticky release
-           (no extra trailing scroll beyond the animation) */
-        style={{ height: `${(N - 1) * 100}vh` }}
+        /* N × 100vh: sticky panel = 100vh, scroll travel = (N-1) × 100vh */
+        style={{ height: `${N * 100}vh` }}
         className="relative"
       >
-        {/* Sticky full-bleed viewport panel — no padding so cards fill edge to edge */}
-        <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Sticky panel with padding + radius — NOT full bleed */}
+        <div className="sticky top-0 h-screen overflow-hidden p-4 md:p-6">
 
-          {/* Label — top left */}
-          <div className="absolute top-8 left-10 z-20 flex items-center gap-4">
-            <p className="text-xs font-medium uppercase tracking-widest text-white/60">
+          {/* Label — top left (inside padded area) */}
+          <div className="absolute top-10 left-10 z-20 flex items-center gap-4">
+            <p className="text-xs font-medium uppercase tracking-widest text-foreground/40">
               Featured work
             </p>
           </div>
@@ -313,14 +310,14 @@ export default function Home() {
           <div
             ref={showcaseTrackRef}
             className="flex h-full"
-            style={{ willChange: "transform" }}  /* GPU layer hint */
+            style={{ willChange: "transform" }}
           >
             {featured.map((p, i) => (
               <Link
                 key={p.slug}
                 href={`/projects/${p.slug}`}
-                /* Each card = 100vw, full-bleed */
-                className="min-w-full h-full relative flex flex-col justify-end group"
+                /* Each card = 100vw wide (w-screen), full height, rounded */
+                className="w-screen h-full shrink-0 relative flex flex-col justify-end group rounded-3xl overflow-hidden"
                 style={{ backgroundColor: p.color }}
               >
                 {/* Gradient overlay */}
