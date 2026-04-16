@@ -297,17 +297,17 @@ export default function Home() {
         style={{ height: `${N * 100}vh` }}
         className="relative"
       >
-        {/* Sticky viewport-height container */}
-        <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Sticky viewport-height container with padding so cards aren't full-bleed */}
+        <div className="sticky top-0 h-screen overflow-hidden p-4 md:p-6">
 
-          {/* Label + counter — rendered on top of cards */}
-          <div className="absolute top-7 left-10 z-20 flex items-center gap-4">
-            <p className="text-xs font-medium uppercase tracking-widest text-white/40">
+          {/* Label + counter — sits above the inset cards */}
+          <div className="absolute top-10 md:top-12 left-14 md:left-16 z-20 flex items-center gap-4">
+            <p className="text-xs font-medium uppercase tracking-widest text-white/60">
               Featured work
             </p>
           </div>
 
-          {/* Horizontally translating track */}
+          {/* Horizontally translating track (sits inside the padded container) */}
           <div
             ref={showcaseTrackRef}
             className="flex h-full"
@@ -317,8 +317,8 @@ export default function Home() {
               <Link
                 key={p.slug}
                 href={`/projects/${p.slug}`}
-                /* Each card = 100vw wide */
-                className="min-w-full h-full relative flex flex-col justify-end group"
+                /* Each card = 100% of the padded container width, with rounded corners */
+                className="min-w-full h-full relative flex flex-col justify-end group rounded-3xl overflow-hidden"
                 style={{ backgroundColor: p.color }}
               >
                 {/* Gradient overlay */}
