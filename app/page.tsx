@@ -100,15 +100,14 @@ export default function Home() {
       }
 
       // ── Horizontal showcase scroll (imperative, no re-render) ────────────
-      // Uses offsetTop (document-space) — stable in production unlike getBoundingClientRect
+      // Pixel-based translation per spec: translateX(-progress * (N-1) * innerWidth)
       if (showcaseRef.current && showcaseTrackRef.current) {
         const top       = showcaseRef.current.offsetTop
         const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
         if (maxScroll > 0) {
           const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          // tx in % of the flex track (track width = N × 100vw)
-          const tx = progress * (N - 1) * (100 / N)
-          showcaseTrackRef.current.style.transform = `translateX(-${tx}%)`
+          const tx       = progress * (N - 1) * window.innerWidth
+          showcaseTrackRef.current.style.transform = `translateX(-${tx}px)`
         }
       }
     }
@@ -289,36 +288,36 @@ export default function Home() {
       </section>
 
       {/* ═══ SECTION 3: HORIZONTAL SCROLL SHOWCASE ═══
-          The outer div is tall (N × 100vh) so scrolling through it drives
-          the inner sticky panel's translateX. Each card is full-viewport wide.
-          "Zoom-in" = each incoming card scales from 0.94 → 1.0 on entry.    */}
+          Outer wrapper = N × 100vh (600vh for 6 cards). Inner sticky h-screen
+          panel holds a flex track of w-screen cards. Scrolling 100vh advances
+          one card via pixel-based translateX applied imperatively to a ref.   */}
       <div
         ref={showcaseRef}
         style={{ height: `${N * 100}vh` }}
         className="relative"
       >
-        {/* Sticky viewport-height container with padding so cards aren't full-bleed */}
-        <div className="sticky top-0 h-screen overflow-hidden p-4 md:p-6">
+        {/* Sticky full-bleed viewport panel */}
+        <div className="sticky top-0 h-screen w-screen overflow-hidden">
 
-          {/* Label + counter — sits above the inset cards */}
-          <div className="absolute top-10 md:top-12 left-14 md:left-16 z-20 flex items-center gap-4">
+          {/* Label — top left, fixed on the sticky panel */}
+          <div className="absolute top-8 left-10 z-20">
             <p className="text-xs font-medium uppercase tracking-widest text-white/60">
               Featured work
             </p>
           </div>
 
-          {/* Horizontally translating track (sits inside the padded container) */}
+          {/* Horizontal track — translated in pixels via ref */}
           <div
             ref={showcaseTrackRef}
             className="flex h-full"
-            style={{ willChange: "transform" }}  /* GPU layer hint */
+            style={{ willChange: "transform" }}
           >
             {featured.map((p, i) => (
               <Link
                 key={p.slug}
                 href={`/projects/${p.slug}`}
-                /* Each card = 100% of the padded container width, with rounded corners */
-                className="min-w-full h-full relative flex flex-col justify-end group rounded-3xl overflow-hidden"
+                /* Each card = 100vw, full bleed, one visible at a time */
+                className="w-screen h-full shrink-0 relative flex flex-col justify-end group"
                 style={{ backgroundColor: p.color }}
               >
                 {/* Gradient overlay */}
