@@ -123,12 +123,8 @@ export default function Navigation() {
               href="/Summer-Chang-Resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold px-4 py-1.5 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: scrolled ? "var(--primary)" : "rgba(255,255,255,0.15)",
-                color:           "#fff",
-                border:          scrolled ? "none" : "1px solid rgba(255,255,255,0.4)",
-              }}
+              className="text-xs font-medium transition-colors duration-300"
+              style={{ color: scrolled ? "#1a1a1a" : "#fff" }}
             >
               Resume
             </a>
