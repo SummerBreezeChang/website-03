@@ -41,8 +41,10 @@ export default function Navigation() {
           style={{
             width:           navWidth,
             borderRadius:    navBorderRadius,
-            paddingTop:      12,
+            paddingTop:      38,
             paddingBottom:   12,
+            marginTop:       16,
+            marginBottom:    16,
             backgroundColor: useTransform(
               navBgOpacity,
               (v) => `rgba(255, 245, 230, ${v})`
@@ -115,7 +117,7 @@ export default function Navigation() {
               target="_blank"
               rel="noopener noreferrer"
               className="hidden md:block text-xs font-medium transition-colors duration-300"
-              style={{ color: scrolled ? "#888" : "rgba(255,255,255,0.85)" }}
+              style={{ color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
             >
               Blog ↗
             </a>
@@ -124,7 +126,7 @@ export default function Navigation() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-medium transition-colors duration-300"
-              style={{ color: scrolled ? "#1a1a1a" : "#fff" }}
+              style={{ color: scrolled ? "#1a1a1a" : "rgba(41,41,41,0.85)" }}
             >
               Resume
             </a>
