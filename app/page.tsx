@@ -24,12 +24,13 @@ export default function Home() {
     { x: number; y: number; width: number; height: number }[]
   >([])
 
-  const cardRefs           = useRef<(HTMLDivElement | null)[]>([])
-  const showcaseRef        = useRef<HTMLDivElement>(null)
-  const showcaseTrackRef   = useRef<HTMLDivElement>(null)
-  const showcaseCounterRef = useRef<HTMLDivElement>(null)
-  const showcaseDotRefs    = useRef<(HTMLDivElement | null)[]>([])
-  const contactRef         = useRef<HTMLDivElement>(null)
+  const cardRefs            = useRef<(HTMLDivElement | null)[]>([])
+  const showcaseRef         = useRef<HTMLDivElement>(null)
+  const showcaseTrackRef    = useRef<HTMLDivElement>(null)
+  const showcaseClipRef     = useRef<HTMLDivElement>(null)
+  const showcaseCounterRef  = useRef<HTMLDivElement>(null)
+  const showcaseDotRefs     = useRef<(HTMLDivElement | null)[]>([])
+  const contactRef          = useRef<HTMLDivElement>(null)
 
   const featured = getFeaturedProjects()
   const N = featured.length // should be 6
@@ -101,14 +102,19 @@ export default function Home() {
         }
       }
 
-      // ── Horizontal showcase scroll (imperative, container-width-based) ──
-      if (showcaseRef.current && showcaseTrackRef.current) {
-        const top        = showcaseRef.current.offsetTop
-        const maxScroll  = showcaseRef.current.offsetHeight - window.innerHeight
+      // ── Horizontal showcase scroll ──────────────────────────────────────
+      if (showcaseRef.current && showcaseTrackRef.current && showcaseClipRef.current) {
+        const top       = showcaseRef.current.offsetTop
+        const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
+        // cardW = exact pixel width of the clip container (one card's visible width)
+        const cardW     = showcaseClipRef.current.clientWidth
+        // Stamp card width onto each card so flex children know their exact size
+        Array.from(showcaseTrackRef.current.children).forEach((child) => {
+          (child as HTMLElement).style.minWidth = `${cardW}px`
+        })
         if (maxScroll > 0) {
-          const progress   = Math.max(0, Math.min(1, (sy - top) / maxScroll))
-          const cardW      = showcaseTrackRef.current.parentElement?.clientWidth ?? window.innerWidth
-          const tx         = progress * (N - 1) * cardW
+          const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
+          const tx       = progress * (N - 1) * cardW
           showcaseTrackRef.current.style.transform = `translateX(-${tx}px)`
 
           // Update counter + dots imperatively
@@ -323,9 +329,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Card viewport — clips the translating track, sized to fill remaining space */}
-          <div className="relative flex-1 overflow-hidden rounded-3xl">
-            {/* Translating track — each card is 100% of this container */}
+          {/* Card viewport — clips the translating track */}
+          <div ref={showcaseClipRef} className="relative flex-1 overflow-hidden rounded-3xl">
+            {/* Translating track — card widths set imperatively in scroll handler */}
             <div
               ref={showcaseTrackRef}
               className="flex h-full"
@@ -335,8 +341,8 @@ export default function Home() {
                 <Link
                   key={p.slug}
                   href={`/projects/${p.slug}`}
-                  className="w-full h-full shrink-0 relative flex flex-col justify-end group"
-                  style={{ backgroundColor: p.color, minWidth: "100%" }}
+                  className="h-full shrink-0 relative flex flex-col justify-end group"
+                  style={{ backgroundColor: p.color }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
