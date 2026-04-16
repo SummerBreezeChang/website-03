@@ -103,11 +103,12 @@ export default function Home() {
       }
 
       // ── Horizontal showcase scroll (imperative, no re-render) ────────────
+      // Uses offsetTop (document-space) — stable in production unlike getBoundingClientRect
       if (showcaseRef.current && showcaseTrackRef.current) {
-        const rect      = showcaseRef.current.getBoundingClientRect()
-        const maxScroll = showcaseRef.current.clientHeight - window.innerHeight
+        const top       = showcaseRef.current.offsetTop
+        const maxScroll = showcaseRef.current.offsetHeight - window.innerHeight
         if (maxScroll > 0) {
-          const progress = Math.max(0, Math.min(1, -rect.top / maxScroll))
+          const progress = Math.max(0, Math.min(1, (sy - top) / maxScroll))
           // tx in % of the flex track (track width = N × 100vw)
           const tx = progress * (N - 1) * (100 / N)
           showcaseTrackRef.current.style.transform = `translateX(-${tx}%)`
