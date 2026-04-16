@@ -66,7 +66,7 @@ export default function Navigation() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs font-medium transition-colors duration-300"
-                  style={{ color: scrolled ? "#888" : "rgba(255,255,255,0.85)" }}
+                  style={{ color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
                 >
                   {link.label}
                 </a>
@@ -75,7 +75,7 @@ export default function Navigation() {
                   key={link.href}
                   href={link.href}
                   className="text-xs font-medium transition-colors duration-300"
-                  style={{ color: scrolled ? "#888" : "rgba(255,255,255,0.85)" }}
+                  style={{ color: scrolled ? "#888" : "rgba(41,41,41,0.85)" }}
                 >
                   {link.label}
                 </Link>
